@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: node-api
+  template:
+    metadata:
+      labels:
+        app: node-api
+    spec:
+      containers:
+        - name: node-api
+          image: thesumit67/node-app-image:v2
+          ports:
+            - containerPort: 8888
+          envFrom:
+            - configMapRef:
+                name: node-config
+            - secretRef:
+                name: node-secret
+          resources: 
+            requests:
+              cpu: "100m" # have to add as HPA was not working on minikube, In idle scenario HPA should work without this 
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-api-lb
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8888
+      targetPort: 8888
+  selector:
+    app: node-api
